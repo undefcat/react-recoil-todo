@@ -1,83 +1,97 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSetRecoilState } from 'recoil'
-
 import { todos } from '../../state/todos'
 
 function Todo(props) {
-  const todo = props.todo
-  const { id } = todo
-  const [editing, setEditing] = useState(false)
-
+  const { id, done, text } = props.todo
   const setTodos = useSetRecoilState(todos)
 
-  const handleOnChange = e => {
-    const { checked } = e.target
-
+  const toggleTodo = checked => {
     setTodos(todos => todos.map(todo => {
       return todo.id === id
-        ? { ...todo, done: checked }
+        ? { ...todo, done: checked, }
         : todo
     }))
   }
 
-  const handleOnDoubleClick = () => {
+  const handleToggle = e => {
+    const { checked } = e.target
+
+    toggleTodo(checked)
+  }
+
+  const handleDestroy = () => {
+    setTodos(todos => todos.filter(todo => todo.id !== id))
+  }
+
+  const [isEditing, setEditing] = useState(false)
+  const [input, setInput] = useState(text)
+  const editInputEl = useRef(null)
+
+  useEffect(() => {
+    if (isEditing) {
+      editInputEl.current.focus()
+    }
+
+  }, [isEditing])
+
+  const handleEditTextDbClick = () => {
     setEditing(true)
   }
 
-  const handleOnBlur = () => {
-    setEditing(false)
+  const handleEditTextInput = e => {
+    setInput(e.target.value)
   }
 
-  const handleOnInput = e => {
-    const { value } = e.target
+  const editTodo = () => {
+    const value = input.trim()
+
+    if (value === '') {
+      setInput('')
+      return
+    }
 
     setTodos(todos => todos.map(todo => {
       return todo.id === id
         ? { ...todo, text: value }
         : todo
     }))
-  }
-
-  const handleOnKeyDown = e => {
-    if (!(e.key === 'Enter' || e.keyCode === 13)) {
-      return
-    }
 
     setEditing(false)
   }
 
-  const handleOnDestroy = () => {
-    setTodos(todos => todos.filter(todo => todo.id !== id))
+  const handleEditTextEnter = e => {
+    if (!(e.key === 'Enter' || e.keyCode === 13)) {
+      return
+    }
+
+    editTodo()
   }
 
   const classNames = []
-  if (editing) {
+  if (isEditing) {
     classNames.push('editing')
   }
 
-  if (todo.done) {
+  if (done) {
     classNames.push('completed')
   }
 
+  const className = classNames.join(' ')
+
   return (
-    <li className={classNames.join(' ')}>
+    <li className={ className }>
       <div className="view">
-        <input
-          checked={todo.done}
-          className="toggle"
-          onChange={handleOnChange}
-          type="checkbox"
-          value={todo.done}
-        />
-        <label onDoubleClick={handleOnDoubleClick}>{todo.text}</label>
-        <button className="destroy" onClick={handleOnDestroy}/>
+        <input className="toggle" type="checkbox" checked={ done } onChange={ handleToggle } />
+        <label onDoubleClick={ handleEditTextDbClick }>{ text }</label>
+        <button className="destroy" onClick={ handleDestroy }/>
       </div>
       <input
         className="edit"
-        onBlur={handleOnBlur}
-        onInput={handleOnInput}
-        onKeyDown={handleOnKeyDown}
-        value={todo.text}
+        value={ input }
+        onInput={ handleEditTextInput }
+        onKeyDown={ handleEditTextEnter }
+        ref={ editInputEl }
       />
     </li>
   )

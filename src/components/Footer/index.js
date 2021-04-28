@@ -1,28 +1,32 @@
-import { useRecoilState } from 'recoil'
-import { filterType, todos } from '../../state/todos'
+import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil'
+import * as state from '../../state/todos'
 
 function Footer() {
-  const [items, setItems] = useRecoilState(todos)
-  const count = items.filter(todo => !todo.done).length
-  const [type, setType] = useRecoilState(filterType)
+  const [filterType, setFilterType] = useRecoilState(state.filterType)
+  const setTodos = useSetRecoilState(state.todos)
 
-  const handleOnClick = () => setItems(todos => todos.filter(todo => !todo.done))
+  const handleClearCompleted = () => {
+    setTodos(todos => todos.filter(todo => !todo.done))
+  }
+
+  const todos = useRecoilValue(state.todos)
+  const todoCount = todos.filter(todo => !todo.done).length
 
   return (
     <footer className="footer">
-      <span className="todo-count"><strong>{ count }</strong> item left</span>
+      <span className="todo-count"><strong>{ todoCount }</strong> item left</span>
       <ul className="filters">
         <li>
-          <a className={ type === 'all' ? 'selected' : '' } href="#/" onClick={() => setType('all')}>All</a>
+          <a className={ filterType === 'all' ? 'selected' : '' } href="#/" onClick={ () => setFilterType('all') }>All</a>
         </li>
         <li>
-          <a className={ type === 'do' ? 'selected' : '' }  href="#/active" onClick={() => setType('do')}>Active</a>
+          <a className={ filterType === 'do' ? 'selected' : '' } href="#/active" onClick={ () => setFilterType('do') }>Active</a>
         </li>
         <li>
-          <a className={ type === 'done' ? 'selected' : '' }  href="#/completed" onClick={() => setType('done')}>Completed</a>
+          <a className={ filterType === 'done' ? 'selected' : '' } href="#/completed" onClick={ () => setFilterType('done') }>Completed</a>
         </li>
       </ul>
-      <button className="clear-completed" onClick={handleOnClick}>Clear completed</button>
+      <button className="clear-completed" onClick={ handleClearCompleted }>Clear completed</button>
     </footer>
   )
 }

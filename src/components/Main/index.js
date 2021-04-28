@@ -1,15 +1,18 @@
 import { useRecoilValue, useRecoilState } from 'recoil'
+import * as state from '../../state/todos'
+
 import Todo from './Todo'
-import { todos, filterTodos } from '../../state/todos'
 
 function Main() {
-  const [items, setItems] = useRecoilState(todos)
-  const isToggleAll = items.every(todo => todo.done)
+  const filteredTodos = useRecoilValue(state.filteredTodos)
+  const Todos = filteredTodos.map(todo => <Todo key={todo.id} todo={todo} />)
 
-  const handleOnChange = e => {
+  const [todos, setTodos] = useRecoilState(state.todos)
+  const isAllDone = todos.every(todo => todo.done)
+  const handleToggle = e => {
     const { checked } = e.target
 
-    setItems(todos => todos.map(todo => {
+    setTodos(todos => todos.map(todo => {
       return {
         ...todo,
         done: checked,
@@ -17,18 +20,9 @@ function Main() {
     }))
   }
 
-  const Todos = useRecoilValue(filterTodos)
-    .map(todo => <Todo key={todo.id} todo={todo} />)
-
   return (
     <section className="main">
-      <input
-        checked={isToggleAll}
-        className="toggle-all"
-        id="toggle-all"
-        onChange={handleOnChange}
-        type="checkbox"
-      />
+      <input id="toggle-all" className="toggle-all" type="checkbox" checked={ isAllDone } onChange={ handleToggle }/>
       <label htmlFor="toggle-all">Mark all as complete</label>
       <ul className="todo-list">
         { Todos }
